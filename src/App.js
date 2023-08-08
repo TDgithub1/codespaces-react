@@ -1,28 +1,70 @@
 import './App.css';
+import { useState, useEffect, useRef} from 'react';
+import axios from 'axios';
+import PopUp from './Components/PopUp';
 
 function App() {
+
+
+   const [data, setData] = useState([]);
+   const [reFetch, setReFetch] = useState(0);
+
+   const popUp = useRef();
+   
+  
+   useEffect(() => {
+
+    const controller = new AbortController(); // best way to stop data
+
+    console.log('useEffect runing...',controller.signal);
+     
+
+    axios
+    .get('https://jsonplaceholder.typicode.com/posts',{
+
+      signal:controller.signal
+
+    })
+    .then((result) => {
+
+      console.log(result.data);
+      console.log('get data');
+
+      popUp.current.showPopUp();// from popup.js 
+
+      setData(result.data);
+
+
+      setTimeout(() => popUp.current.hidePopUp(),4000)
+
+    })
+    .catch((error) => {
+      console.log(error.message);
+    });
+
+
+
+    return () =>{
+
+      console.log('useEffect cleanup....');
+      controller.abort()
+
+    }
+
+   },[reFetch]);
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src="Octocat.png" className="App-logo" alt="logo" />
-        <p>
-          GitHub Codespaces <span className="heart">♥️</span> React
-        </p>
-        <p className="small">
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <p>
-          <a
-            className="App-link"
-            href="https://reactjs.org"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Learn React
-          </a>
-        </p>
-      </header>
+
+    <div>
+
+    <PopUp ref={popUp} />
+
+      <button onClick={() => setReFetch(pre=>pre+1)}>ReFetch</button>
+    
+    {data?.map((ele,index)=><h3 key={index}>{ele.title}</h3>)}
+
     </div>
+
   );
 }
 
